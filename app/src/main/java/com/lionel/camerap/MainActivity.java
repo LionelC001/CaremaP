@@ -28,8 +28,13 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class MainActivity extends AppCompatActivity {
 
+/**
+ * getFilesDir() - creates an app-specific directory; hidden from users; deleted with the app
+ * getExternalFilesDir() - creates an app-specific directory; accessible to users; deleted with the app
+ * getExternalStorageDirectory() - uses a shared directory (e.g., Music); accessible to users; remains when the app is delete
+ */
+public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_PERMISSION_WRITE_EXTERNAL_STORAGE = 101;
 
     private static final int REQUEST_IMAGE_FULL_SIZED = 1;
@@ -62,7 +67,8 @@ public class MainActivity extends AppCompatActivity {
 
     public void onFullSizeClicked(View view) {
         try {
-            currentPhotoFile = createPhotoFile();
+//            currentPhotoFile = createPhotoFileInSDCard();
+            currentPhotoFile = createPhotoFileInPackage();
             Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
             if (intent.resolveActivity(getPackageManager()) != null && currentPhotoFile != null) {
                 Uri photoUri = FileProvider.getUriForFile(this, BuildConfig.APPLICATION_ID + ".android.fileprovider", currentPhotoFile);
@@ -76,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private File createPhotoFile() throws IOException {
+    private File createPhotoFileInSDCard() throws IOException {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String photoFileName = "CameraP_" + timeStamp + ".jpg";
 
@@ -87,6 +93,29 @@ public class MainActivity extends AppCompatActivity {
         Log.d("<>", storageDir.getAbsolutePath());
 
         File photoFile = new File(storageDir, photoFileName);
+        if (!photoFile.exists()) {
+            photoFile.createNewFile();
+        }
+        Log.d("<>", photoFile.getAbsolutePath());
+
+        return photoFile;
+    }
+
+
+    private File createPhotoFileInPackage() throws IOException {
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String photoFileName = "CameraP_" + timeStamp;
+
+        File storageDir = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES), "cameraP_pic");   // the child name have to be same with file_paths 's path
+        if (!storageDir.exists()) {
+            storageDir.mkdir();
+        }
+        Log.d("<>", storageDir.getAbsolutePath());
+
+//       File photoFile = File.createTempFile(photoFileName, ".jpg", storageDir);   //createTempFile create a random name between prefix and suffix
+//        Log.d("<>", photoFile.getAbsolutePath());
+
+        File photoFile = new File(storageDir, photoFileName + ".jpg");
         if (!photoFile.exists()) {
             photoFile.createNewFile();
         }
